@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link-a-Dot Life</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+
+    <script src="./assets/js/phaser.min.js"></script>
+
+    <script src="./assets/js/start.js"></script>
+    <script src="./assets/js/end.js"></script>
+    <script src="./assets/js/scene1.js"></script>
+    
+    <script src="./assets/js/restart.js"></script>
+</head>
+
+<body>
+
+    <script>
+        var config = {
+            scale: {
+                mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
+                autoCenter: Phaser.Scale.CENTER_BOTH,
+                width: 1920,
+                height: 1080
+            },
+            scene: [start,end,restart,scene01]
+        };
+
+        var game = new Phaser.Game(config);
+
+        function resize() {
+            game.scale.setMaxZoom();
+        }
+
+        window.addEventListener("resize",resize)
+
+    </script>
+
+</body>
+
+</html>
