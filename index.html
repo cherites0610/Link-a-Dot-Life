@@ -7,6 +7,7 @@
     <title>Link-a-Dot Life</title>
     <link rel="stylesheet" href="./assets/css/style.css">
 
+    <script src="./assets/js/constants.js"></script>
     <script src="./assets/js/phaser.min.js"></script>
 
     <script src="./assets/js/start.js"></script>
@@ -26,7 +27,7 @@
                 width: 1920,
                 height: 1080
             },
-            scene: [start,end,restart,scene01]
+            scene: [scene01,start,end,restart]
         };
 
         var game = new Phaser.Game(config);

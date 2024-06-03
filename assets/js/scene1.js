@@ -1,63 +1,52 @@
 class scene01 extends Phaser.Scene {
     constructor() {
         super({ key: 'scene01' })
+        this.level = 1;
+        this.itemNum = constants.LevelPassNum[this.level - 1];
+        this.gameIndex = constants.GameIndex[this.level - 1];
     }
 
     preload() {
-        this.load.image('bg', '/assets/img/01/bg.png');
-        this.load.image('start', '/assets/img/public/start.png')
-        this.load.image('end', '/assets/img/public/end.png')
+        //導入圖片
+        const FUrl = "/assets/img/0" + this.level + "/";
+        for (let i = 1; i < 5; i++) {
+            for (let j = 1; j < 3; j++) {
+                const fileName = (String.fromCharCode(i + 96)) + j;
+                this.load.image(fileName, FUrl + fileName + ".png")
+            }
+        }
+        this.load.image('bg', FUrl + "bg.png");
     }
 
     create() {
-        this.add.image(0, 0, 'bg').setOrigin(0, 0).setScale(0.4);
-        let start = this.add.image(200, 200, 'start').setScale(0.1);
-        let end = this.add.image(1000, 200, 'end').setScale(0.1);
+        let lastClick;
 
-        // 绘制一个绿色的长方形
-        let graphics = this.add.graphics();
-        graphics.fillStyle(0x00ff00, 1.0);  // 绿色，完全不透明
-        graphics.fillRect(0, 0, 100, 200);  // 绘制长方形（x, y, width, height）
+        //顯示背景
+        this.add.image(0, 0, 'bg').setOrigin(0, 0);
 
-        // 创建文本对象
-        let text = this.add.text(10, 90, '结束游戏', { fill: '#ffffff' });  // 文本居中
+        //顯示物品
+        const group = this.add.group();
+        for (let i = 1; i < this.itemNum; i++) {
+            //i是當前物品的編號
 
-        // 创建一个容器，并将长方形和文本添加到容器中
-        let container = this.add.container(1000, 1000);  // 容器位置（x, y）
-        container.setSize(100, 200)
-        container.add(graphics);
-        container.add(text);
+            let count = 0; //0為a 1為b
 
-        // 使容器可点击
-        container.setSize(100, 200);  // 设置容器的大小
-        this.add.existing(container);  // 添加容器到场景
-        container.setInteractive();  // 确保交互区域正确
-        container.on('pointerdown', () => {
-            console.log("123")
-            this.scene.start('end');  // 点击容器切换回MainMenu场景
-        });
-        drawLineBetweenImages(this, start, end);
+            for (let y = 0; y < this.gameIndex.length; y++) {
+                //y是物品所在位置的y位置
+                for (let x = 0; x < this.gameIndex[y].length; x++) {
+                    //x是物品所在位置的x位置
+                    if (this.gameIndex[y][x] == i) {
+                        count++;
+                        const fileName = (String.fromCharCode(i + 96)) + count;
+                        const item = group.create(695 + (x * constants.GridWidth), 210 + (y * constants.GridHeight), fileName).setScale(0.09);
 
-
-        // 创建方法来连接两张图片
-        function drawLineBetweenImages(scene, image1, image2) {
-            // 获取两张图片的位置
-            let x1 = image1.x
-            let y1 = image1.y
-            let x2 = image2.x
-            let y2 = image2.y
-
-            // 创建图形对象
-            let graphics = scene.add.graphics();
-
-            // 设置线条样式
-            graphics.lineStyle(50, 0xff0000, 1); // 红色线条，宽度为2
-
-            // 绘制线条
-            graphics.beginPath();
-            graphics.moveTo(x1, y1);
-            graphics.lineTo(x2, y2);
-            graphics.strokePath();
+                        item.setInteractive();
+                        item.on('pointerdown', () => {
+                            console.log(`Item ${fileName} clicked!`);
+                        });
+                    }
+                }
+            }
         }
     }
 }
