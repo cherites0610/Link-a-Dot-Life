@@ -1,11 +1,17 @@
 class scene01 extends Phaser.Scene {
+    
+
     constructor() {
         super({ key: 'scene01' })
         this.level = 1;
         this.itemNum = constants.LevelPassNum[this.level - 1];
         this.gameIndex = constants.GameIndex[this.level - 1];
         this.promptText;
-        this.lastClick = 0;
+        this.lastClickIndex = [-1, -1];
+        this.IsSelectItem = false;
+        this.lastItem;
+        this.LineGroup;
+        this.lastLineDirection;
     }
 
     preload() {
@@ -17,17 +23,32 @@ class scene01 extends Phaser.Scene {
                 this.load.image(fileName, FUrl + fileName + ".png")
             }
         }
+
+        this.load.image('fail', "/assets/img/public/fail.png");
+        this.load.image('gohome', "/assets/img/public/gohome.jpg");
+        this.load.image('line1', FUrl + "line1.png");
+        this.load.image('line2', FUrl + "line2.png");
+        this.load.image('line3', FUrl + "line3.png");
+        this.load.image('line4', FUrl + "line4.png");
         this.load.image('bg', FUrl + "bg.png");
     }
 
     create() {
+        this.LineGroup =this.add.group();
+
         //顯示背景
         this.add.image(0, 0, 'bg').setOrigin(0, 0);
+        // this.add.image(590, 610, 'gohome').setOrigin(0, 0).setScale(0.09).setDepth(4);
+        // this.add.image(500, 250, 'fail').setOrigin(0, 0).setScale(0.3).setDepth(3);
+
+        //顯示提示文字
+        this.promptText = this.add.text(0, 0, '當前選中:無', { fontSize: 32, color: '0x000000' });
+        this.promptText.setPosition(1000, 20).setOrigin(0, 0);
 
         //顯示物品
         const cellGroup = this.add.group();
         const itemGroup = this.add.group();
-        for (let i = 1; i < this.itemNum; i++) {
+        for (let i = 1; i < this.itemNum + 1; i++) {
             //i是當前物品的編號
 
             let count = 0; //0為a 1為b
@@ -35,9 +56,10 @@ class scene01 extends Phaser.Scene {
             for (let y = 0; y < this.gameIndex.length; y++) {
                 //y是物品所在位置的y位置
                 for (let x = 0; x < this.gameIndex[y].length; x++) {
-                    let xIndex = 695 + (x * constants.GridWidth);
-                    let yIndex = 210 + (y * constants.GridHeight);
+                    let xIndex = constants.ScreenWidth + (x * constants.GridWidth);
+                    let yIndex = constants.ScreenHeight + (y * constants.GridHeight);
                     //x是物品所在位置的x位置
+
                     const cell = this.add.rectangle(xIndex, yIndex, constants.GridWidth, constants.GridHeight, 0x000000, 0);
                     cell.setInteractive();
                     cell.on('pointerdown', (pointer) => this.clickGrid(pointer));
@@ -46,80 +68,167 @@ class scene01 extends Phaser.Scene {
                     if (this.gameIndex[y][x] == i) {
                         count++;
                         const fileName = (String.fromCharCode(i + 96)) + count;
-                        const item = itemGroup.create(xIndex, yIndex, fileName).setScale(0.09);
-
-                        item.setInteractive();
-                        item.setDepth(constants.ItemDepth)
-                        item.setData('id', fileName);
-                        item.on('pointerdown', (pointer) => this.clickItem(pointer, item));
+                        const item = itemGroup.create(xIndex, yIndex, fileName).setScale(constants.ItemScale).setData('id', fileName).setData('index', [x, y]);
+                        itemGroup.add(item);
                     }
                 }
             }
         }
     }
 
-    clickItem = (pointer, item) => {
-        const x = parseInt((pointer.x - 583.75) / constants.GridWidth)
-        const y = parseInt((pointer.y - 100) / constants.GridHeight);
-
-        if (this.promptText) {
-            //判斷是否有點擊過
-            if (this.promptText.text.split(":")[1] === item.getData('id')) {
-                //點擊相同物品
-                this.lastClick = 0;
-                this.promptText.setText('');
-                return;
-            }
-            
-            this.drawLineBetweenImages(this,this.lastClick,item)
-
-            this.promptText.setText('');
-        }
-        this.promptText = this.add.text(0, 0, '當前選中:' + item.getData('id'), { fontSize: 32, color: '0x000000' });
-        this.promptText.setPosition(1000, 10).setOrigin(0, 0);
-        this.lastClick = item;
-    }
-
     clickGrid = (pointer) => {
-        if (this.lastClick == 0) {
-            //顯示未選取物品提示
-            const promptText = this.add.text(0, 0, '暫未選中物品', { fontSize: 32, color: '0x000000' });
-            promptText.setPosition(this.cameras.main.centerX, this.cameras.main.centerY).setOrigin(0, 0);
-            this.time.addEvent({
-                delay: 1000,
-                callback: () => {
-                    promptText.setVisible(false);
-                },
-                callbackScope: this,
-                loop: false,
-            });
-            promptText.setVisible(true);
-            return;
-        }
+        const x = parseInt((pointer.x - (constants.ScreenWidth - constants.GridWidth / 2)) / constants.GridWidth)
+        const y = parseInt((pointer.y - (constants.ScreenHeight - constants.GridHeight / 2)) / constants.GridHeight);
 
-        const x = parseInt((pointer.x - 583.75) / constants.GridWidth)
-        const y = parseInt((pointer.y - 100) / constants.GridHeight);
-        // console.log(x, y);
-        // console.log("lastClick:" + this.lastClick.getData('id'));
+        if (this.IsSelectItem) {
+            //上次有點擊到物品
+            if (Math.abs(this.lastClickIndex[0] - x) + Math.abs(this.lastClickIndex[1] - y) == 1) {
+                //點擊有相連
+                
+                //第二次點到物品
+                if (this.gameIndex[y][x] != 0) {
+
+                    if (this.gameIndex[y][x] == this.lastItem) {
+                        //點到正確的物品
+                        console.log("true")
+                    } else {
+                        //錯誤的物品
+                        console.log("false")
+                    }
+
+                    this.promptText.setText('當前:' + '無');
+                    this.IsSelectItem = false; 
+                    this.lastItem = null;
+                    this.lastLine = null;
+
+                }else{
+                    //畫綫
+                    var line = this.add.image(constants.ScreenWidth+(constants.GridWidth*x),constants.ScreenHeight+(constants.GridHeight*y),'line4').setScale(constants.LineScale);
+                    var lastLine = this.LineGroup.getChildren()[this.LineGroup.getChildren().length-1];
+
+                    if(lastLine){
+                        if((x-this.lastClickIndex[0])==0){
+                            if(y-this.lastClickIndex[1]<0){
+                                //向下點
+                                if(this.lastLineDirection==1){
+                                    lastLine.setTexture('line3')
+                                }else if(this.lastLineDirection==2){
+                                    lastLine.setTexture('line3')
+                                }else if(this.lastLineDirection==3){
+                                    lastLine.setTexture('line2'); 
+                                }else{
+                                    lastLine.setTexture('line2').setAngle(89)
+                                }
+                            }else{
+                                //向上點
+                                if(this.lastLineDirection==1){
+                                    lastLine.setTexture('line3')
+                                }else if(this.lastLineDirection==2){
+                                    lastLine.setTexture('line3')
+                                }else if(this.lastLineDirection==3){
+                                    lastLine.setTexture('line2').setAngle(-90); 
+                                }else{
+                                    lastLine.setTexture('line2')
+                                }
+                            }
+                            
+
+                        }else if((x-this.lastClickIndex[0])==-1){
+                            //向左點
+                            if(y-this.lastClickIndex[1]<0){
+                                if(this.lastLineDirection==1){
+                                    lastLine.setTexture('line2')
+                                }else if(this.lastLineDirection==2){
+                                    lastLine.setTexture('line2')
+                                }else if(this.lastLineDirection==3){
+                                    lastLine.setTexture('line3') 
+                                }else{
+                                    lastLine.setTexture('line3')
+                                }
+                            }else{
+                                if(this.lastLineDirection==1){
+                                    lastLine.setTexture('line2').setAngle(360)
+                                }else if(this.lastLineDirection==2){
+                                    lastLine.setTexture('line2')
+                                }else if(this.lastLineDirection==3){
+                                    lastLine.setTexture('line3') 
+                                }else{
+                                    lastLine.setTexture('line3')
+                                }
+                            }
+                            
+
+                        }else if((x-this.lastClickIndex[0])==1){
+                            //向右點
+                            if(this.lastLineDirection==1){
+                                lastLine.setTexture('line2')
+                            }else if(this.lastLineDirection==2){
+                                lastLine.setTexture('line2').setAngle(-180)
+                            }else if(this.lastLineDirection==3){
+                                lastLine.setTexture('line3') 
+                            }else{
+                                lastLine.setTexture('line3')
+                            }
+                        }
+                        
+                    }
+
+                    if(x-this.lastClickIndex[0]==0){
+                        //x沒位移
+                        if(y-this.lastClickIndex[1]<0){
+                            //點擊上面的格子
+                            
+                            line.setAngle(-90)
+                            console.log('top')
+                            this.lastLineDirection=1;
+                            
+                        }else{
+                            //點擊下面的格子
+                            line.setAngle(90)
+                            
+                            console.log('down')
+                            this.lastLineDirection=2;
+                        }
+                    }else if(x-this.lastClickIndex[0]>0){
+                        //點擊了右邊
+                        line.setAngle(0)
+                        console.log('right')
+                        this.lastLineDirection=4;
+                    }else{
+                        //點擊了左邊
+                        line.setAngle(180)
+                        console.log("left")
+                        this.lastLineDirection=3;
+                    }
+                    
+                    this.LineGroup.add(line);
+                }
+
+                this.lastClickIndex = [x, y]
+                this.promptText.setText('當前選擇坐標:' + [x, y]);
+
+            } else {
+                //點擊沒有相連
+                this.promptText.setText('當前:' + '無');
+                this.IsSelectItem = false;
+                this.lastItem = null;
+            }
+        } else {
+            //上次沒有點擊到物品
+            if (this.gameIndex[y][x] != 0) {
+                //這次有點到物品
+                this.promptText.setText('當前選擇坐標:' + [x, y]);
+                this.lastClickIndex = [x, y];
+                this.IsSelectItem = true;
+                this.lastItem = this.gameIndex[y][x];
+            } else {
+                //這次一樣沒點到物品
+                this.promptText.setText('當前:' + '無');
+            }
+        }
     }
 
-    drawLineBetweenImages(scene, image1, image2) {
-        // 获取两张图片的位置
-        let x1 = image1.x
-        let y1 = image1.y
-        let x2 = image2.x
-        let y2 = image2.y
+    drawLine(scene,x,y){
 
-        // 创建图形对象
-        let graphics = scene.add.graphics();
-
-        // 设置线条样式
-        graphics.lineStyle(10, 0xff0000, 1); // 红色线条，宽度为2
-
-        // 绘制线条
-        graphics.beginPath();
-        graphics.moveTo(x1, y1);
-        graphics.lineTo(x2, y2);
-        graphics.strokePath();
     }
 }
