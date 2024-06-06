@@ -12,6 +12,7 @@ class scene01 extends Phaser.Scene {
         this.lastItem;
         this.LineGroup;
         this.lastLineDirection;
+        this.lineColor;
     }
 
     preload() {
@@ -23,13 +24,18 @@ class scene01 extends Phaser.Scene {
                 this.load.image(fileName, FUrl + fileName + ".png")
             }
         }
-
+        this.load.image('test', "/assets/img/test.png");
         this.load.image('fail', "/assets/img/public/fail.png");
         this.load.image('gohome', "/assets/img/public/gohome.jpg");
-        this.load.image('line1', FUrl + "line1.png");
-        this.load.image('line2', FUrl + "line2.png");
-        this.load.image('line3', FUrl + "line3.png");
-        this.load.image('line4', FUrl + "line4.png");
+
+        const IUrl = "/assets/img/public/line/"
+        for (let i = 1; i < 5; i++) {
+            for (let j = 1; j < 5; j++) {
+                const fileName = "line" + i + (String.fromCharCode(j + 96));
+                console.log(fileName);
+                this.load.image(fileName, IUrl + fileName + ".png")
+            }
+        }
         this.load.image('bg', FUrl + "bg.png");
     }
 
@@ -79,8 +85,9 @@ class scene01 extends Phaser.Scene {
     clickGrid = (pointer) => {
         const x = parseInt((pointer.x - (constants.ScreenWidth - constants.GridWidth / 2)) / constants.GridWidth)
         const y = parseInt((pointer.y - (constants.ScreenHeight - constants.GridHeight / 2)) / constants.GridHeight);
-
+        console.log(this.lineColor);
         if (this.IsSelectItem) {
+
             //上次有點擊到物品
             if (Math.abs(this.lastClickIndex[0] - x) + Math.abs(this.lastClickIndex[1] - y) == 1) {
                 //點擊有相連
@@ -99,13 +106,13 @@ class scene01 extends Phaser.Scene {
                     this.promptText.setText('當前:' + '無');
                     this.IsSelectItem = false;
                     this.lastItem = null;
-                    util.changeLastLine(this,x,y); 
+                    util.changeLastLine(this, x, y);
                     this.LineGroup.clear()
                     return;
                 } else {
-                    
-                    util.changeLastLine(this,x,y);  
-                    util.drawLine(this,x,y)
+
+                    util.changeLastLine(this, x, y);
+                    util.drawLine(this, x, y)
 
                 }
 
@@ -127,134 +134,11 @@ class scene01 extends Phaser.Scene {
                 this.lastClickIndex = [x, y];
                 this.IsSelectItem = true;
                 this.lastItem = this.gameIndex[y][x];
+                this.lineColor = (String.fromCharCode(96 + this.gameIndex[y][x]));
             } else {
                 //這次一樣沒點到物品
                 this.promptText.setText('當前:' + '無');
             }
         }
     }
-
-    // changeLastLine(scene, x, y) {
-
-    //     if (this.LineGroup.length > 1) {
-    //         var lastLine = this.LineGroup.getChildren()[this.LineGroup.getChildren().length - 1];
-
-    //         if (x - this.lastClickIndex[0] == 0) {
-    //             //x沒位移
-    //             if (y - this.lastClickIndex[1] < 0) {
-    //                 //點擊上面的格子
-    //                 if (this.lastLineDirection == 1) {
-    //                     lastLine.setTexture('line3')
-    //                 } else if (this.lastLineDirection == 2) {
-    //                     lastLine.setTexture('line3')
-    //                 } else if (this.lastLineDirection == 3) {
-    //                     lastLine.setTexture('line2');
-    //                 } else {
-    //                     lastLine.setTexture('line2').setAngle(89)
-    //                 }
-    //             } else {
-    //                 //點擊下面的格子
-    //                 if (this.lastLineDirection == 1) {
-    //                     lastLine.setTexture('line3')
-    //                 } else if (this.lastLineDirection == 2) {
-    //                     lastLine.setTexture('line3')
-    //                 } else if (this.lastLineDirection == 3) {
-    //                     lastLine.setTexture('line2').setAngle(-90);
-    //                 } else {
-    //                     lastLine.setTexture('line2')
-    //                 }
-    //             }
-    //         } else if (x - this.lastClickIndex[0] > 0) {
-    //             //點擊了右邊
-    //             if (this.lastLineDirection == 1) {
-    //                 lastLine.setTexture('line2')
-    //             } else if (this.lastLineDirection == 2) {
-    //                 lastLine.setTexture('line2').setAngle(180)
-    //             } else if (this.lastLineDirection == 3) {
-    //                 lastLine.setTexture('line3')
-    //             } else {
-    //                 lastLine.setTexture('line3')
-    //             }
-    //         } else {
-    //             //點擊了左邊
-    //             if (this.lastLineDirection == 1) {
-    //                 lastLine.setTexture('line2').setAngle(360)
-    //             } else if (this.lastLineDirection == 2) {
-    //                 lastLine.setTexture('line2')
-    //             } else if (this.lastLineDirection == 3) {
-    //                 lastLine.setTexture('line3')
-    //             } else {
-    //                 lastLine.setTexture('line3')
-    //             }
-    //         }
-    //     }
-        
-    // }
-
-    // drawLine(scene, x, y) {
-    //     var line = this.add.image(constants.ScreenWidth + (constants.GridWidth * x), constants.ScreenHeight + (constants.GridHeight * y), 'line4').setScale(constants.LineScale);
-    //     var lastLine = this.LineGroup.getChildren()[this.LineGroup.getChildren().length - 1];
-    //     if (!lastLine) {
-    //         lastLine = this.add.image(0, 0, 'line1').setScale(0)
-    //     }
-    //     if (x - this.lastClickIndex[0] == 0) {
-    //         //x沒位移
-    //         if (y - this.lastClickIndex[1] < 0) {
-    //             //點擊上面的格子
-    //             line.setAngle(-90)
-    //             if (this.lastLineDirection == 1) {
-    //                 lastLine.setTexture('line3')
-    //             } else if (this.lastLineDirection == 2) {
-    //                 lastLine.setTexture('line3')
-    //             } else if (this.lastLineDirection == 3) {
-    //                 lastLine.setTexture('line2');
-    //             } else {
-    //                 lastLine.setTexture('line2').setAngle(89)
-    //             }
-    //             this.lastLineDirection = 1;
-    //         } else {
-    //             //點擊下面的格子
-    //             line.setAngle(90)
-    //             if (this.lastLineDirection == 1) {
-    //                 lastLine.setTexture('line3')
-    //             } else if (this.lastLineDirection == 2) {
-    //                 lastLine.setTexture('line3')
-    //             } else if (this.lastLineDirection == 3) {
-    //                 lastLine.setTexture('line2').setAngle(-90);
-    //             } else {
-    //                 lastLine.setTexture('line2')
-    //             }
-    //             this.lastLineDirection = 2;
-    //         }
-    //     } else if (x - this.lastClickIndex[0] > 0) {
-    //         //點擊了右邊
-    //         console.log("right");
-    //         line.setAngle(0)
-    //         if (this.lastLineDirection == 1) {
-    //             lastLine.setTexture('line2')
-    //         } else if (this.lastLineDirection == 2) {
-    //             lastLine.setTexture('line2').setAngle(180)
-    //         } else if (this.lastLineDirection == 3) {
-    //             lastLine.setTexture('line3')
-    //         } else {
-    //             lastLine.setTexture('line3')
-    //         }
-    //         this.lastLineDirection = 4;
-    //     } else {
-    //         //點擊了左邊
-    //         line.setAngle(180)
-    //         if (this.lastLineDirection == 1) {
-    //             lastLine.setTexture('line2').setAngle(360)
-    //         } else if (this.lastLineDirection == 2) {
-    //             lastLine.setTexture('line2')
-    //         } else if (this.lastLineDirection == 3) {
-    //             lastLine.setTexture('line3')
-    //         } else {
-    //             lastLine.setTexture('line3')
-    //         }
-    //         this.lastLineDirection = 3;
-    //     }
-
-    //     this.LineGroup.add(line);
-    // }
 }
