@@ -5,14 +5,18 @@ class scene01 extends Phaser.Scene {
         super({ key: 'scene01' })
         this.level = 1;
         this.itemNum = constants.LevelPassNum[this.level - 1];
-        this.gameIndex = constants.GameIndex[this.level - 1];
+        this.gameIndex = JSON.parse(JSON.stringify(constants.GameIndex[this.level - 1]));;
         this.promptText;
+        this.promptImage;
+        this.historyClickIndex = [];
         this.lastClickIndex = [-1, -1];
         this.IsSelectItem = false;
         this.lastItem;
-        this.LineGroup;
+        this.LineGroup = [];
         this.lastLineDirection;
         this.lineColor;
+        this.success = 0;
+        this.currentLineGroup;
     }
 
     preload() {
@@ -24,15 +28,16 @@ class scene01 extends Phaser.Scene {
                 this.load.image(fileName, FUrl + fileName + ".png")
             }
         }
-        this.load.image('test', "/assets/img/test.png");
+        this.load.image('test', "/assets/img/public/test.png");
+        this.load.image('resetBtn', "/assets/img/public/resetBtn.png");
         this.load.image('fail', "/assets/img/public/fail.png");
-        this.load.image('gohome', "/assets/img/public/gohome.jpg");
+        this.load.image('success', "/assets/img/public/success.png");
+        this.load.image('gohomeBtn', "/assets/img/public/gohome.jpg");
 
         const IUrl = "/assets/img/public/line/"
         for (let i = 1; i < 5; i++) {
             for (let j = 1; j < 5; j++) {
                 const fileName = "line" + i + (String.fromCharCode(j + 96));
-                console.log(fileName);
                 this.load.image(fileName, IUrl + fileName + ".png")
             }
         }
@@ -40,16 +45,20 @@ class scene01 extends Phaser.Scene {
     }
 
     create() {
-        this.LineGroup = this.add.group();
-
-        //顯示背景
+        //背景
         this.add.image(0, 0, 'bg').setOrigin(0, 0);
-        // this.add.image(590, 610, 'gohome').setOrigin(0, 0).setScale(0.09).setDepth(4);
-        // this.add.image(500, 250, 'fail').setOrigin(0, 0).setScale(0.3).setDepth(3);
 
-        //顯示提示文字
+        //提示圖片
+        this.promptImage = this.add.image(constants.ScreenWidth, constants.ScreenHeight, 'test').setScale(0.095).setDepth(2).setVisible(false);
+
+        //提示文字
         this.promptText = this.add.text(0, 0, '當前選中:無', { fontSize: 32, color: '0x000000' });
         this.promptText.setPosition(1000, 20).setOrigin(0, 0);
+
+        //重置按鈕
+        const resetBtn = this.add.image(constants.resetBtnXY[0], constants.resetBtnXY[1], 'resetBtn').setOrigin(0, 0).setScale(constants.resetBtnScale);
+        resetBtn.setInteractive();
+        resetBtn.on('pointerdown', () => util.handleClickresetBtn(this))
 
         //顯示物品
         const cellGroup = this.add.group();
@@ -74,7 +83,7 @@ class scene01 extends Phaser.Scene {
                     if (this.gameIndex[y][x] == i) {
                         count++;
                         const fileName = (String.fromCharCode(i + 96)) + count;
-                        const item = itemGroup.create(xIndex, yIndex, fileName).setScale(constants.ItemScale).setData('id', fileName).setData('index', [x, y]);
+                        const item = itemGroup.create(xIndex, yIndex, fileName).setScale(constants.ItemScale).setData('id', fileName).setData('index', [x, y]).setDepth(constants.ItemDepth);
                         itemGroup.add(item);
                     }
                 }
@@ -85,56 +94,80 @@ class scene01 extends Phaser.Scene {
     clickGrid = (pointer) => {
         const x = parseInt((pointer.x - (constants.ScreenWidth - constants.GridWidth / 2)) / constants.GridWidth)
         const y = parseInt((pointer.y - (constants.ScreenHeight - constants.GridHeight / 2)) / constants.GridHeight);
-        console.log(this.lineColor);
-        if (this.IsSelectItem) {
 
+        if (this.lastItem + 80 == this.gameIndex[y][x]) {
+            console.log('點擊到相同物品');
+            return;
+        } else if (this.lastItem + 90 == this.gameIndex[y][x]) {
+            console.log('點擊到相同綫條');
+            //這裏應該要退回上一步
+            return;
+        } else if (this.gameIndex[y][x] >= 80) {
+            console.log('點擊到不能點的地方')
+            return;
+        }
+
+
+
+        if (this.IsSelectItem) {
             //上次有點擊到物品
             if (Math.abs(this.lastClickIndex[0] - x) + Math.abs(this.lastClickIndex[1] - y) == 1) {
                 //點擊有相連
 
                 //第二次點到物品
-                if (this.gameIndex[y][x] != 0) {
+                if (this.gameIndex[y][x] != 0 && this.gameIndex[y][x] < 90) {
+                    this.gameIndex[y][x] = 80 + this.gameIndex[y][x]
+                    this.promptImage.setVisible(false);
 
-                    if (this.gameIndex[y][x] == this.lastItem) {
+                    if ((this.gameIndex[y][x] - 80) == this.lastItem) {
                         //點到正確的物品
-                        console.log("true")
+                        this.success = this.success + 1;
+
+                        if (this.success == this.itemNum) {
+                            console.log('過關成功')
+                            this.add.image(500, 250, 'success').setOrigin(0, 0).setScale(0.3).setDepth(3);
+                        }
                     } else {
                         //錯誤的物品
-                        console.log("false")
+
                     }
 
                     this.promptText.setText('當前:' + '無');
                     this.IsSelectItem = false;
                     this.lastItem = null;
                     util.changeLastLine(this, x, y);
-                    this.LineGroup.clear()
                     return;
                 } else {
-
+                    this.promptImage.setX(constants.ScreenWidth + (constants.GridWidth * x)).setY(constants.ScreenHeight + (constants.GridHeight * y))
                     util.changeLastLine(this, x, y);
                     util.drawLine(this, x, y)
 
                 }
 
                 this.lastClickIndex = [x, y]
+                this.historyClickIndex.push([x,y]);this.historyClickIndex.push([x,y])
                 this.promptText.setText('當前選擇坐標:' + [x, y]);
 
             } else {
                 //點擊沒有相連
-                this.promptText.setText('當前:' + '無');
-                this.IsSelectItem = false;
-                this.lastItem = null;
-                this.LineGroup.clear()
+
             }
         } else {
             //上次沒有點擊到物品
             if (this.gameIndex[y][x] != 0) {
                 //這次有點到物品
+                this.currentLineGroup = this.add.group()
+                this.LineGroup.push(this.currentLineGroup);
+
                 this.promptText.setText('當前選擇坐標:' + [x, y]);
+                this.promptImage.setX(constants.ScreenWidth + (constants.GridWidth * x)).setY(constants.ScreenHeight + (constants.GridHeight * y)).setVisible(true);
+
                 this.lastClickIndex = [x, y];
+                this.historyClickIndex.push([x,y])
                 this.IsSelectItem = true;
                 this.lastItem = this.gameIndex[y][x];
                 this.lineColor = (String.fromCharCode(96 + this.gameIndex[y][x]));
+                this.gameIndex[y][x] = 80 + this.lastItem
             } else {
                 //這次一樣沒點到物品
                 this.promptText.setText('當前:' + '無');
