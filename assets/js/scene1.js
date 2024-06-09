@@ -95,66 +95,45 @@ class scene01 extends Phaser.Scene {
             return;
         }
 
-        if (this.historyClickIndex.length == 1) {
-            //一步都沒有記錄
-
-            util.setPrompt(this.promptItem, false);
-
-            this.clickNum = this.clickNum - 1;
-            this.historyClickIndex.pop()
-
-            this.LineGroup.pop();
-            this.selectItem = null;
-            this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
-            return;
-        }
-
         let currentLineGroup = this.LineGroup[this.LineGroup.length - 1]
-
         let lastLine = currentLineGroup.getChildren()[currentLineGroup.getChildren().length - 1];
-
         let lastlastClickIndex = this.historyClickIndex[this.historyClickIndex.length - 2];
 
-        if (currentLineGroup.getChildren().length == 1) {
-            if (gameIndex[lastlastClickIndex[1]][lastlastClickIndex[0]] != 0) {
-                //要返回的步是第二次格子
-                util.setPrompt(this.promptItem, true, lastlastClickIndex);
-                this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
-                lastLine.destroy();
-            }
-        } else {
-            if (gameIndex[lastClickIndex[1]][lastClickIndex[0]] == 0) {
-                //上一步點擊的是綫條
-                this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
-                lastLine.destroy();
-                util.setPrompt(this.promptItem, true, lastlastClickIndex);
+        if (gameIndex[lastClickIndex[1]][lastClickIndex[0]] == 0) {
+            //上一步點擊的是綫條
+            console.log('要返回的步是點擊綫條')
+            this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
+            lastLine.destroy();
+            util.setPrompt(this.promptItem, true, lastlastClickIndex);
 
+            //還有綫條的話才改變綫條
+            if(currentLineGroup.getChildren().length>0){
                 util.RecoveryLine(this);
+            }
 
+        } else {
+            //要返回的步時點擊格子
+
+            this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
+            if (this.selectItem) {
+                console.log('要返回的步是第一次點擊物品')
+                util.setPrompt(this.promptItem, false, lastlastClickIndex);
+                this.LineGroup.pop();
+                this.selectItem = null;
             } else {
+                console.log('要返回的步是第二次點擊物品')
+                util.setPrompt(this.promptItem, true, lastlastClickIndex);
                 let lastItemIndex = this.historyClickIndex[this.clickNum - (currentLineGroup.getChildren().length + 2)]
-                this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
                 this.selectItem = gameIndex[lastItemIndex[1]][lastItemIndex[0]]
-                if (gameIndex[lastlastClickIndex[1]][lastlastClickIndex[0]] != 0) {
-                    //上上次是物品
-                    util.setPrompt(this.promptItem, false, lastlastClickIndex);
-                    this.LineGroup.pop();
-                    this.selectItem = null;
-                } else {
-                    //上上次是綫
-                    util.setPrompt(this.promptItem, true, lastlastClickIndex);
 
-                    if (gameIndex[lastClickIndex[1]][lastClickIndex[0]] == this.selectItem) {
-                        this.success -= 1;
-                    }
-                    util.RecoveryLine(this);
-                    //還要判斷有沒有贏
+                //看上一步點擊物品是否有連對
+                if (gameIndex[lastClickIndex[1]][lastClickIndex[0]] == this.selectItem) {
+                    this.success -= 1;
                 }
-
-
+                util.RecoveryLine(this);
             }
         }
-
+        //移除點擊記錄
         this.clickNum = this.clickNum - 1;
         this.historyClickIndex.pop()
     }
