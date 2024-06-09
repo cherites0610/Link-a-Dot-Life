@@ -1,14 +1,11 @@
 const constants = {
     LevelPassNum: [4], //每關物品數,
-    ScreenHeight: 210, //畫面寬差
-    ScreenWidth: 640,  //畫面高差
-    GridWidth: 222.5, //方格寬度
-    GridHeight: 220, //方格高度
-    ItemDepth: 4,//物品zIndex
-    ItemScale: 0.085,//物品縮放比例
+    Screen: [640,210], //畫面
+    Grid: [222.5,220], //方格
+    Item: [0,0,0.085,4], //物品
     LineScale: 0.11, //綫條縮放比例
-    resetBtnScale: 0.09, //按鈕縮放比例
-    resetBtnXY: [1730,860], //按鈕xy
+    resetBtn: [1730,860,0.09], //reset按鈕xy
+    goBackBtn: [1730,500,0.09], //goBack按鈕xy
 
     //每關索引值
     GameIndex: [
