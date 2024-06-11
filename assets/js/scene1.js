@@ -88,13 +88,14 @@ class scene01 extends Phaser.Scene {
     }
 
     goBack = () => {
-        const gameIndex = JSON.parse(JSON.stringify(constants.GameIndex[this.level - 1]));
-        let lastClickIndex = this.historyClickIndex[this.historyClickIndex.length - 1];
+
         if (this.historyClickIndex.length == 0) {
             //一步都沒有記錄
             return;
         }
 
+        const gameIndex = JSON.parse(JSON.stringify(constants.GameIndex[this.level - 1]));
+        let lastClickIndex = this.historyClickIndex[this.historyClickIndex.length - 1];
         let currentLineGroup = this.LineGroup[this.LineGroup.length - 1]
         let lastLine = currentLineGroup.getChildren()[currentLineGroup.getChildren().length - 1];
         let lastlastClickIndex = this.historyClickIndex[this.historyClickIndex.length - 2];
@@ -107,12 +108,12 @@ class scene01 extends Phaser.Scene {
             util.setPrompt(this.promptItem, true, lastlastClickIndex);
 
             //還有綫條的話才改變綫條
-            if(currentLineGroup.getChildren().length>0){
+            if (currentLineGroup.getChildren().length > 0) {
                 util.RecoveryLine(this);
             }
 
         } else {
-            //要返回的步時點擊格子
+            //要返回的步時點擊物品
 
             this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
             if (this.selectItem) {
