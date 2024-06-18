@@ -97,9 +97,7 @@ const util = {
         scene.IsSelectItem = false;
         scene.selectItem = null;
         scene.historyClickIndex = []
-        console.log(scene.tempGameIndex);
         scene.gameIndex = JSON.parse(scene.tempGameIndex)
-        console.log(scene.gameIndex);
         scene.clickNum = 0;
         // scene.scene.start('scene01');
     },
@@ -133,7 +131,7 @@ const util = {
             return;
         }
 
-        const gameIndex = JSON.parse(JSON.stringify(constants.GameIndex[scene.level - 1]));
+        const gameIndex = scene.gameIndex = JSON.parse(scene.tempGameIndex)
         let lastClickIndex = scene.historyClickIndex[scene.historyClickIndex.length - 1];
         let currentLineGroup = scene.LineGroup[scene.LineGroup.length - 1]
         let lastLine = currentLineGroup.getChildren()[currentLineGroup.getChildren().length - 1];
