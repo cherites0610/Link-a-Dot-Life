@@ -22,7 +22,6 @@ const util = {
     },
 
     setPrompt: (promptItem, isVisible, promptIndex) => {
-        console.log(promptItem);
         if (isVisible) {
             let promptText = "當前選中:" + promptIndex;
             promptItem[0].setText(promptText)
@@ -98,7 +97,9 @@ const util = {
         scene.IsSelectItem = false;
         scene.selectItem = null;
         scene.historyClickIndex = []
-
+        console.log(scene.tempGameIndex);
+        scene.gameIndex = JSON.parse(scene.tempGameIndex)
+        console.log(scene.gameIndex);
         scene.clickNum = 0;
         // scene.scene.start('scene01');
     },
@@ -266,21 +267,21 @@ const util = {
 
     success: (scene) => {
         scene.timer.pause(); //暫停計時
-        let bg = scene.add.image(constants.EndLevelImg[0], constants.EndLevelImg[1], 'success').setScale(constants.EndLevelImg[2]).setDepth(constants.EndLevelImg[3]).setOrigin(0.5, 0.5)
-        let backMenuBtn = scene.add.image(constants.backMenuBtn[0], constants.backMenuBtn[1], 'backMenuBtn').setScale(constants.backMenuBtn[2]).setDepth(constants.backMenuBtn[3]);
+        let bg = scene.add.image(constants.EndLevelImg[0], constants.EndLevelImg[1], 'success'+scene.level).setScale(constants.EndLevelImg[2]).setDepth(constants.EndLevelImg[3]).setOrigin(0.5, 0.5)
+        let backMenuBtn = scene.add.image(constants.backMenuBtn[0], constants.backMenuBtn[1], 'backMenuBtn1').setScale(constants.backMenuBtn[2]).setDepth(constants.backMenuBtn[3]);
         let nextLevelBtn = scene.add.image(constants.nextLevelBtn[0], constants.nextLevelBtn[1], 'nextLevelBtn').setScale(constants.nextLevelBtn[2]).setDepth(constants.nextLevelBtn[3]);
         scene.mask = scene.add.graphics(0, 0);
-        scene.mask.fillStyle(0x000000, 0.9);
+        scene.mask.fillStyle(0x000000, constants.Mask[4]);
         scene.mask.fillRect(0, 0, constants.Mask[0], constants.Mask[1]);
         scene.mask.depth = constants.Mask[3];
 
         nextLevelBtn.setInteractive();
         nextLevelBtn.on('pointerdown', () => {
             let level = 'scene';
-            if ((scene.level+1) < 10) {
+            if ((scene.level + 1) < 10) {
                 level = level + '0';
             }
-            level = level + (scene.level+1);
+            level = level + (scene.level + 1);
             scene.scene.start(level);
         })
 
@@ -288,6 +289,7 @@ const util = {
         backMenuBtn.on('pointerdown', () => {
             util.handleClickresetBtn(scene);
             scene.cellGroup.clear(true, true);
+            scene.gameIndex = JSON.parse(JSON.stringify(util.getGameIndex()));;
             scene.promptItem = [];
             scene.scene.start('start')
         });
@@ -295,7 +297,10 @@ const util = {
 
     createGame: (scene) => {
         //背景
-        scene.add.image(0, 0, 'bg').setOrigin(0, 0);
+        scene.add.image(0, 0, 'bg'+scene.level).setOrigin(0, 0);
+
+        //分數文字
+        scene.add.text(constants.scoreText[0], constants.scoreText[1], (scene.level - 1) * 10, { font: '100px Arial', fill: '#6e665c' }).setOrigin(0.5, 0.5);
 
         //提示
         scene.promptItem.push(scene.add.text(0, 0, '當前選中:無', { fontSize: 32, color: '0x000000' }).setPosition(1000, 20).setOrigin(0, 0));
@@ -307,7 +312,7 @@ const util = {
         resetBtn.on('pointerdown', () => util.handleClickresetBtn(scene))
 
         //退回上一步按鈕
-        const goBackBtn = scene.add.image(constants.goBackBtn[0], constants.goBackBtn[1], 'resetBtn').setOrigin(0, 0).setScale(constants.goBackBtn[2]);
+        const goBackBtn = scene.add.image(constants.goBackBtn[0], constants.goBackBtn[1], 'backBtn').setOrigin(0, 0).setScale(constants.goBackBtn[2]);
         goBackBtn.setInteractive();
         goBackBtn.on('pointerdown', () => util.onClickBackBtn(scene))
 
@@ -333,13 +338,13 @@ const util = {
                     if (scene.gameIndex[y][x] == i) {
                         count++;
                         const fileName = (String.fromCharCode(i + 96)) + count;
-                        scene.add.image(xIndex, yIndex, fileName).setScale(constants.Item[2]).setData('id', fileName).setData('index', [x, y]).setDepth(constants.Item[3]);
+                        scene.add.image(xIndex, yIndex, fileName+scene.level).setScale(constants.Item[2]).setData('id', fileName).setData('index', [x, y]).setDepth(constants.Item[3]);
                     }
                 }
             }
         }
 
-        scene.timer = new Timer(scene, constants.TimeLimit, () => {
+        scene.timer = new Timer(scene, constants.TimeLimit[scene.level - 1], () => {
             util.fail(scene);
         })
         scene.timer.start();
@@ -347,11 +352,11 @@ const util = {
 
     fail: (scene) => {
         //關卡失敗
-        let bg = scene.add.image(constants.EndLevelImg[0], constants.EndLevelImg[1], 'fail').setScale(constants.EndLevelImg[2]).setDepth(constants.EndLevelImg[3]).setOrigin(0.5, 0.5)
-        let backMenuBtn = scene.add.image(constants.backMenuBtn[0], constants.backMenuBtn[1], 'backMenuBtn').setScale(constants.backMenuBtn[2]).setDepth(constants.backMenuBtn[3]);
-        let restartBtn = scene.add.image(constants.nextLevelBtn[0], constants.nextLevelBtn[1], 'nextLevelBtn').setScale(constants.nextLevelBtn[2]).setDepth(constants.nextLevelBtn[3]);
+        let bg = scene.add.image(constants.EndLevelImg[0], constants.EndLevelImg[1], 'fail'+scene.level).setScale(constants.EndLevelImg[2]).setDepth(constants.EndLevelImg[3]).setOrigin(0.5, 0.5)
+        let backMenuBtn = scene.add.image(constants.backMenuBtn[0], constants.backMenuBtn[1], 'backMenuBtn2').setScale(constants.backMenuBtn[2]).setDepth(constants.backMenuBtn[3]);
+        let restartBtn = scene.add.image(constants.nextLevelBtn[0], constants.nextLevelBtn[1], 'restartBtn').setScale(constants.nextLevelBtn[2]).setDepth(constants.nextLevelBtn[3]);
         scene.mask = scene.add.graphics(0, 0);
-        scene.mask.fillStyle(0x000000, 0.9);
+        scene.mask.fillStyle(0x000000, constants.Mask[4]);
         scene.mask.fillRect(0, 0, constants.Mask[0], constants.Mask[1]);
         scene.mask.depth = constants.Mask[3];
 
@@ -360,6 +365,7 @@ const util = {
             util.handleClickresetBtn(scene);
             scene.cellGroup.clear(true, true);
             scene.promptItem = [];
+            scene.gameIndex = JSON.parse(JSON.stringify(util.getGameIndex()));;
             scene.scene.start('start')
         });
 
@@ -373,7 +379,17 @@ const util = {
                 level = level + '0';
             }
             level = level + scene.level;
+            console.log(level);
             scene.scene.start(level)
         })
+    },
+
+    getGameIndex: () => {
+        // 定义变量 maxNumber，表示最大值
+        let maxNumber = constants.GameIndex.length; // 这里可以是任意你希望的最大值
+
+        // 生成1到 maxNumber 之间的随机整数
+        let randomNumber = Math.floor(Math.random() * maxNumber) + 1;
+        return constants.GameIndex[randomNumber-1];
     }
 }

@@ -9,7 +9,7 @@ class Timer {
     }
 
     start() {
-        this.timerText = this.scene.add.text(constants.TimerText[0], constants.TimerText[1], this.timeLeft, { font: '100px Arial', fill: '#ffffff' }).setDepth(constants.TimerText[3]).setOrigin(0.5, 0);
+        this.timerText = this.scene.add.text(constants.TimerText[0], constants.TimerText[1], this.timeLeft, { font: '100px Arial', fill: '#6e665c' }).setDepth(constants.TimerText[3]).setOrigin(0.5, 0);
 
         this.timerEvent = this.scene.time.addEvent({
             delay: 1000, // 每秒更新一次
