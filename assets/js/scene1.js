@@ -6,13 +6,17 @@ class scene01 extends Phaser.Scene {
         this.level = 1;
         this.itemNum = constants.LevelPassNum[this.level - 1];
         this.gameIndex = JSON.parse(JSON.stringify(constants.GameIndex[this.level - 1]));;
-
         this.promptItem = [];
         this.historyClickIndex = [];
         this.clickNum = 0;
         this.selectItem;
         this.LineGroup = [];
         this.success = 0;
+        this.timerEvent;
+        // 初始化計時器和相關變量
+        this.initialTime = 100; // 設置倒計時初始時間（100秒）
+        this.timeLeft = this.initialTime;
+        this.timerText;
     }
 
     preload() {
@@ -56,7 +60,7 @@ class scene01 extends Phaser.Scene {
         //退回上一步按鈕
         const goBackBtn = this.add.image(constants.goBackBtn[0], constants.goBackBtn[1], 'resetBtn').setOrigin(0, 0).setScale(constants.goBackBtn[2]);
         goBackBtn.setInteractive();
-        goBackBtn.on('pointerdown', () => this.goBack())
+        goBackBtn.on('pointerdown', () => util.onClickBackBtn(this))
 
         //顯示物品
         const cellGroup = this.add.group();
@@ -74,7 +78,7 @@ class scene01 extends Phaser.Scene {
 
                     const cell = this.add.rectangle(xIndex, yIndex, constants.Grid[0], constants.Grid[1], 0x000000, 0);
                     cell.setInteractive();
-                    cell.on('pointerdown', (pointer) => this.clickGrid(pointer));
+                    cell.on('pointerdown', (pointer) => util.onClickGrid(this, pointer));
                     cellGroup.add(cell);
 
                     if (this.gameIndex[y][x] == i) {
@@ -85,143 +89,5 @@ class scene01 extends Phaser.Scene {
                 }
             }
         }
-    }
-
-    goBack = () => {
-
-        if (this.historyClickIndex.length == 0) {
-            //一步都沒有記錄
-            return;
-        }
-
-        const gameIndex = JSON.parse(JSON.stringify(constants.GameIndex[this.level - 1]));
-        let lastClickIndex = this.historyClickIndex[this.historyClickIndex.length - 1];
-        let currentLineGroup = this.LineGroup[this.LineGroup.length - 1]
-        let lastLine = currentLineGroup.getChildren()[currentLineGroup.getChildren().length - 1];
-        let lastlastClickIndex = this.historyClickIndex[this.historyClickIndex.length - 2];
-
-        if (gameIndex[lastClickIndex[1]][lastClickIndex[0]] == 0) {
-            //上一步點擊的是綫條
-            console.log('要返回的步是點擊綫條')
-            this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
-            lastLine.destroy();
-            util.setPrompt(this.promptItem, true, lastlastClickIndex);
-
-            //還有綫條的話才改變綫條
-            if (currentLineGroup.getChildren().length > 0) {
-                util.RecoveryLine(this);
-            }
-
-        } else {
-            //要返回的步時點擊物品
-
-            this.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
-            if (this.selectItem) {
-                console.log('要返回的步是第一次點擊物品')
-                util.setPrompt(this.promptItem, false, lastlastClickIndex);
-                this.LineGroup.pop();
-                this.selectItem = null;
-            } else {
-                console.log('要返回的步是第二次點擊物品')
-                util.setPrompt(this.promptItem, true, lastlastClickIndex);
-                let lastItemIndex = this.historyClickIndex[this.clickNum - (currentLineGroup.getChildren().length + 2)]
-                this.selectItem = gameIndex[lastItemIndex[1]][lastItemIndex[0]]
-
-                //看上一步點擊物品是否有連對
-                if (gameIndex[lastClickIndex[1]][lastClickIndex[0]] == this.selectItem) {
-                    this.success -= 1;
-                }
-                util.RecoveryLine(this);
-            }
-        }
-        //移除點擊記錄
-        this.clickNum = this.clickNum - 1;
-        this.historyClickIndex.pop()
-    }
-
-    clickGrid = (pointer) => {
-        const x = parseInt((pointer.x - (constants.Screen[0] - constants.Grid[0] / 2)) / constants.Grid[0])
-        const y = parseInt((pointer.y - (constants.Screen[1] - constants.Grid[1] / 2)) / constants.Grid[1]);
-        let lastClickIndex = this.historyClickIndex[this.historyClickIndex.length - 1];
-
-
-        if (this.selectItem) {
-            //上次有點擊到物品
-
-            if (Math.abs(lastClickIndex[0] - x) + Math.abs(lastClickIndex[1] - y) == 1) {
-                //點擊有相連
-
-                if (this.selectItem + 80 == this.gameIndex[y][x]) {
-                    //點擊到選中的物品
-
-                } else if (this.selectItem + 90 == this.gameIndex[y][x]) {
-                    //點擊到上一次點擊的地方
-
-                } else if (this.gameIndex[y][x] >= 80) {
-                    //點擊到不能點的地方
-
-                } else if (this.gameIndex[y][x] != 0 && this.gameIndex[y][x] < 90) {
-                    //第二次點到物品
-
-                    //記錄物品已被使用
-                    this.gameIndex[y][x] = 80 + this.gameIndex[y][x]
-
-                    //關閉提醒
-                    util.setPrompt(this.promptItem, false);
-
-                    if ((this.gameIndex[y][x] - 80) == this.selectItem) {
-                        //點到正確的物品
-                        this.success = this.success + 1;
-                        if (this.success == this.itemNum) {
-                            this.add.image(500, 250, 'success').setOrigin(0, 0).setScale(0.3).setDepth(3);
-                        }
-                    } else {
-                        //點到錯誤的物品
-                    }
-
-                    //更改上一次點擊的綫條
-                    util.changeLastLine(this, x, y);
-                    this.selectItem = null;
-
-                    //記錄有效點擊
-                    this.historyClickIndex.push([x, y]);
-                    this.clickNum = this.clickNum + 1;
-                } else {
-                    //點到綫格子
-
-                    //設定提醒
-                    util.setPrompt(this.promptItem, true, [x, y]);
-                    //更改綫條以及畫綫
-                    util.changeLastLine(this, x, y);
-                    util.drawLine(this, x, y)
-
-                    //記錄有效點擊
-                    this.historyClickIndex.push([x, y]);
-                    this.clickNum = this.clickNum + 1;
-                }
-
-            } else {
-                //點擊沒有相連
-            }
-        } else {
-            //上次沒有點擊到物品
-
-            if (this.gameIndex[y][x] != 0) {
-                //第一次點擊物品
-                this.LineGroup.push(this.add.group());
-                //高亮提示
-                util.setPrompt(this.promptItem, true, [x, y]);
-                //記錄物品已被使用
-                this.selectItem = this.gameIndex[y][x];
-                this.gameIndex[y][x] = 80 + this.selectItem
-
-                //記錄有效點擊
-                this.historyClickIndex.push([x, y]);
-                this.clickNum = this.clickNum + 1;
-            } else {
-                //這次一樣沒點到物品
-            }
-        }
-
     }
 }

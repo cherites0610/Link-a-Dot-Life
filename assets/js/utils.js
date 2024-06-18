@@ -21,12 +21,12 @@ const util = {
         )
     },
 
-    setPrompt: (promptItem,isVisible, promptIndex) => {
-        if(isVisible){
+    setPrompt: (promptItem, isVisible, promptIndex) => {
+        if (isVisible) {
             let promptText = "當前選中:" + promptIndex;
             promptItem[0].setText(promptText)
-            promptItem[1].setX(constants.Screen[0] + (constants.Grid[0] * (promptIndex[0]+2))-117).setY(constants.Screen[1] + (constants.Grid[1] * (promptIndex[1]+1))+108).setVisible(true);
-        }else{
+            promptItem[1].setX(constants.Screen[0] + (constants.Grid[0] * (promptIndex[0] + 2)) - 117).setY(constants.Screen[1] + (constants.Grid[1] * (promptIndex[1] + 1)) + 108).setVisible(true);
+        } else {
             promptItem[0].setText("當前選中:" + '無')
             promptItem[1].setVisible(false);
         }
@@ -93,7 +93,7 @@ const util = {
         })
         scene.LineGroup = []
         scene.success = 0;
-        util.setPrompt(scene.promptItem,false)
+        util.setPrompt(scene.promptItem, false)
         scene.IsSelectItem = false;
         scene.selectItem = null;
         scene.historyClickIndex = []
@@ -123,5 +123,141 @@ const util = {
         }
 
         return ClickDirection;
-    }
+    },
+
+    onClickBackBtn: (scene) => {
+        if (scene.historyClickIndex.length == 0) {
+            //一步都沒有記錄
+            return;
+        }
+
+        const gameIndex = JSON.parse(JSON.stringify(constants.GameIndex[scene.level - 1]));
+        let lastClickIndex = scene.historyClickIndex[scene.historyClickIndex.length - 1];
+        let currentLineGroup = scene.LineGroup[scene.LineGroup.length - 1]
+        let lastLine = currentLineGroup.getChildren()[currentLineGroup.getChildren().length - 1];
+        let lastlastClickIndex = scene.historyClickIndex[scene.historyClickIndex.length - 2];
+
+        if (gameIndex[lastClickIndex[1]][lastClickIndex[0]] == 0) {
+            //上一步點擊的是綫條
+            console.log('要返回的步是點擊綫條')
+            scene.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
+            lastLine.destroy();
+            util.setPrompt(scene.promptItem, true, lastlastClickIndex);
+
+            //還有綫條的話才改變綫條
+            if (currentLineGroup.getChildren().length > 0) {
+                util.RecoveryLine(scene);
+            }
+
+        } else {
+            //要返回的步時點擊物品
+
+            scene.gameIndex[lastClickIndex[1]][lastClickIndex[0]] = gameIndex[lastClickIndex[1]][lastClickIndex[0]]
+            if (scene.selectItem) {
+                console.log('要返回的步是第一次點擊物品')
+                util.setPrompt(scene.promptItem, false, lastlastClickIndex);
+                scene.LineGroup.pop();
+                scene.selectItem = null;
+            } else {
+                console.log('要返回的步是第二次點擊物品')
+                util.setPrompt(scene.promptItem, true, lastlastClickIndex);
+                let lastItemIndex = scene.historyClickIndex[scene.clickNum - (currentLineGroup.getChildren().length + 2)]
+                scene.selectItem = gameIndex[lastItemIndex[1]][lastItemIndex[0]]
+
+                //看上一步點擊物品是否有連對
+                if (gameIndex[lastClickIndex[1]][lastClickIndex[0]] == scene.selectItem) {
+                    scene.success -= 1;
+                }
+                util.RecoveryLine(scene);
+            }
+        }
+        //移除點擊記錄
+        scene.clickNum = scene.clickNum - 1;
+        scene.historyClickIndex.pop()
+    },
+
+    onClickGrid: (scene, pointer) => {
+        const x = parseInt((pointer.x - (constants.Screen[0] - constants.Grid[0] / 2)) / constants.Grid[0])
+        const y = parseInt((pointer.y - (constants.Screen[1] - constants.Grid[1] / 2)) / constants.Grid[1]);
+        let lastClickIndex = scene.historyClickIndex[scene.historyClickIndex.length - 1];
+
+
+        if (scene.selectItem) {
+            //上次有點擊到物品
+
+            if (Math.abs(lastClickIndex[0] - x) + Math.abs(lastClickIndex[1] - y) == 1) {
+                //點擊有相連
+
+                if (scene.selectItem + 80 == scene.gameIndex[y][x]) {
+                    //點擊到選中的物品
+
+                } else if (scene.selectItem + 90 == scene.gameIndex[y][x]) {
+                    //點擊到上一次點擊的地方
+
+                } else if (scene.gameIndex[y][x] >= 80) {
+                    //點擊到不能點的地方
+
+                } else if (scene.gameIndex[y][x] != 0 && scene.gameIndex[y][x] < 90) {
+                    //第二次點到物品
+
+                    //記錄物品已被使用
+                    scene.gameIndex[y][x] = 80 + scene.gameIndex[y][x]
+
+                    //關閉提醒
+                    util.setPrompt(scene.promptItem, false);
+
+                    if ((scene.gameIndex[y][x] - 80) == scene.selectItem) {
+                        //點到正確的物品
+                        scene.success = scene.success + 1;
+                        if (scene.success == scene.itemNum) {
+                            scene.add.image(500, 250, 'success').setOrigin(0, 0).setScale(0.3).setDepth(3);
+                        }
+                    } else {
+                        //點到錯誤的物品
+                    }
+
+                    //更改上一次點擊的綫條
+                    util.changeLastLine(scene, x, y);
+                    scene.selectItem = null;
+
+                    //記錄有效點擊
+                    scene.historyClickIndex.push([x, y]);
+                    scene.clickNum = scene.clickNum + 1;
+                } else {
+                    //點到綫格子
+
+                    //設定提醒
+                    util.setPrompt(scene.promptItem, true, [x, y]);
+                    //更改綫條以及畫綫
+                    util.changeLastLine(scene, x, y);
+                    util.drawLine(scene, x, y)
+
+                    //記錄有效點擊
+                    scene.historyClickIndex.push([x, y]);
+                    scene.clickNum = scene.clickNum + 1;
+                }
+
+            } else {
+                //點擊沒有相連
+            }
+        } else {
+            //上次沒有點擊到物品
+
+            if (scene.gameIndex[y][x] != 0) {
+                //第一次點擊物品
+                scene.LineGroup.push(scene.add.group());
+                //高亮提示
+                util.setPrompt(scene.promptItem, true, [x, y]);
+                //記錄物品已被使用
+                scene.selectItem = scene.gameIndex[y][x];
+                scene.gameIndex[y][x] = 80 + scene.selectItem
+
+                //記錄有效點擊
+                scene.historyClickIndex.push([x, y]);
+                scene.clickNum = scene.clickNum + 1;
+            } else {
+                //這次一樣沒點到物品
+            }
+        }
+    },
 }
