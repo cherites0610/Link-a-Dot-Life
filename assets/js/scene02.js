@@ -1,9 +1,9 @@
-class scene01 extends Phaser.Scene {
+class scene02 extends Phaser.Scene {
 
 
     constructor() {
-        super({ key: 'scene01' })
-        this.level = 1;
+        super({ key: 'scene02' })
+        this.level = 2;
         this.itemNum = constants.LevelPassNum[this.level - 1];
         this.gameIndex = JSON.parse(JSON.stringify(constants.GameIndex[this.level - 1]));;
         this.promptItem = [];
@@ -31,6 +31,7 @@ class scene01 extends Phaser.Scene {
     }
 
     create() {
+        console.log(this.gameIndex);
         util.createGame(this);
     }
 }

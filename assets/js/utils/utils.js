@@ -22,6 +22,7 @@ const util = {
     },
 
     setPrompt: (promptItem, isVisible, promptIndex) => {
+        console.log(promptItem);
         if (isVisible) {
             let promptText = "當前選中:" + promptIndex;
             promptItem[0].setText(promptText)
@@ -204,13 +205,15 @@ const util = {
                     scene.gameIndex[y][x] = 80 + scene.gameIndex[y][x]
 
                     //關閉提醒
+
                     util.setPrompt(scene.promptItem, false);
 
                     if ((scene.gameIndex[y][x] - 80) == scene.selectItem) {
                         //點到正確的物品
                         scene.success = scene.success + 1;
                         if (scene.success == scene.itemNum) {
-                            scene.add.image(500, 250, 'success').setOrigin(0, 0).setScale(0.3).setDepth(3);
+                            util.success(scene);
+                            return;
                         }
                     } else {
                         //點到錯誤的物品
@@ -260,4 +263,117 @@ const util = {
             }
         }
     },
+
+    success: (scene) => {
+        scene.timer.pause(); //暫停計時
+        let bg = scene.add.image(constants.EndLevelImg[0], constants.EndLevelImg[1], 'success').setScale(constants.EndLevelImg[2]).setDepth(constants.EndLevelImg[3]).setOrigin(0.5, 0.5)
+        let backMenuBtn = scene.add.image(constants.backMenuBtn[0], constants.backMenuBtn[1], 'backMenuBtn').setScale(constants.backMenuBtn[2]).setDepth(constants.backMenuBtn[3]);
+        let nextLevelBtn = scene.add.image(constants.nextLevelBtn[0], constants.nextLevelBtn[1], 'nextLevelBtn').setScale(constants.nextLevelBtn[2]).setDepth(constants.nextLevelBtn[3]);
+        scene.mask = scene.add.graphics(0, 0);
+        scene.mask.fillStyle(0x000000, 0.9);
+        scene.mask.fillRect(0, 0, constants.Mask[0], constants.Mask[1]);
+        scene.mask.depth = constants.Mask[3];
+
+        nextLevelBtn.setInteractive();
+        nextLevelBtn.on('pointerdown', () => {
+            let level = 'scene';
+            if ((scene.level+1) < 10) {
+                level = level + '0';
+            }
+            level = level + (scene.level+1);
+            scene.scene.start(level);
+        })
+
+        backMenuBtn.setInteractive();
+        backMenuBtn.on('pointerdown', () => {
+            util.handleClickresetBtn(scene);
+            scene.cellGroup.clear(true, true);
+            scene.promptItem = [];
+            scene.scene.start('start')
+        });
+    },
+
+    createGame: (scene) => {
+        //背景
+        scene.add.image(0, 0, 'bg').setOrigin(0, 0);
+
+        //提示
+        scene.promptItem.push(scene.add.text(0, 0, '當前選中:無', { fontSize: 32, color: '0x000000' }).setPosition(1000, 20).setOrigin(0, 0));
+        scene.promptItem.push(scene.add.image(constants.Screen[0], constants.Screen[1], 'promptImage').setDepth(0).setVisible(false))
+
+        //重置按鈕
+        const resetBtn = scene.add.image(constants.resetBtn[0], constants.resetBtn[1], 'resetBtn').setOrigin(0, 0).setScale(constants.resetBtn[2]);
+        resetBtn.setInteractive();
+        resetBtn.on('pointerdown', () => util.handleClickresetBtn(scene))
+
+        //退回上一步按鈕
+        const goBackBtn = scene.add.image(constants.goBackBtn[0], constants.goBackBtn[1], 'resetBtn').setOrigin(0, 0).setScale(constants.goBackBtn[2]);
+        goBackBtn.setInteractive();
+        goBackBtn.on('pointerdown', () => util.onClickBackBtn(scene))
+
+        //顯示物品
+        scene.cellGroup = scene.add.group();
+        for (let i = 1; i < scene.itemNum + 1; i++) {
+            //i是當前物品的編號
+
+            let count = 0; //0為a 1為b
+
+            for (let y = 0; y < scene.gameIndex.length; y++) {
+                //y是物品所在位置的y位置
+                for (let x = 0; x < scene.gameIndex[y].length; x++) {
+                    let xIndex = constants.Screen[0] + (x * constants.Grid[0]);
+                    let yIndex = constants.Screen[1] + (y * constants.Grid[1]);
+                    //x是物品所在位置的x位置
+
+                    const cell = scene.add.rectangle(xIndex, yIndex, constants.Grid[0], constants.Grid[1], 0x000000, 0);
+                    cell.setInteractive();
+                    cell.on('pointerdown', (pointer) => util.onClickGrid(scene, pointer));
+                    scene.cellGroup.add(cell);
+
+                    if (scene.gameIndex[y][x] == i) {
+                        count++;
+                        const fileName = (String.fromCharCode(i + 96)) + count;
+                        scene.add.image(xIndex, yIndex, fileName).setScale(constants.Item[2]).setData('id', fileName).setData('index', [x, y]).setDepth(constants.Item[3]);
+                    }
+                }
+            }
+        }
+
+        scene.timer = new Timer(scene, constants.TimeLimit, () => {
+            util.fail(scene);
+        })
+        scene.timer.start();
+    },
+
+    fail: (scene) => {
+        //關卡失敗
+        let bg = scene.add.image(constants.EndLevelImg[0], constants.EndLevelImg[1], 'fail').setScale(constants.EndLevelImg[2]).setDepth(constants.EndLevelImg[3]).setOrigin(0.5, 0.5)
+        let backMenuBtn = scene.add.image(constants.backMenuBtn[0], constants.backMenuBtn[1], 'backMenuBtn').setScale(constants.backMenuBtn[2]).setDepth(constants.backMenuBtn[3]);
+        let restartBtn = scene.add.image(constants.nextLevelBtn[0], constants.nextLevelBtn[1], 'nextLevelBtn').setScale(constants.nextLevelBtn[2]).setDepth(constants.nextLevelBtn[3]);
+        scene.mask = scene.add.graphics(0, 0);
+        scene.mask.fillStyle(0x000000, 0.9);
+        scene.mask.fillRect(0, 0, constants.Mask[0], constants.Mask[1]);
+        scene.mask.depth = constants.Mask[3];
+
+        backMenuBtn.setInteractive();
+        backMenuBtn.on('pointerdown', () => {
+            util.handleClickresetBtn(scene);
+            scene.cellGroup.clear(true, true);
+            scene.promptItem = [];
+            scene.scene.start('start')
+        });
+
+        restartBtn.setInteractive();
+        restartBtn.on('pointerdown', () => {
+            util.handleClickresetBtn(scene);
+            scene.cellGroup.clear(true, true);
+            scene.promptItem = [];
+            let level = 'scene';
+            if (scene.level < 10) {
+                level = level + '0';
+            }
+            level = level + scene.level;
+            scene.scene.start(level)
+        })
+    }
 }
