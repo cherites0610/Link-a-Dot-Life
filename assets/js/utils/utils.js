@@ -211,7 +211,12 @@ const util = {
                         //點到正確的物品
                         scene.success = scene.success + 1;
                         if (scene.success == scene.itemNum) {
-                            util.success(scene);
+                            if (scene.level == 10) {
+                                util.endGame(scene);
+                            } else {
+                                util.success(scene);
+                            }
+
                             return;
                         }
                     } else {
@@ -278,7 +283,7 @@ const util = {
         nextLevelBtn.setInteractive();
         nextLevelBtn.on('pointerdown', () => {
             util.resetScene(scene);
-            scene.scene.start('scene'+(scene.level+1));
+            scene.scene.start('scene' + (scene.level + 1));
         })
 
         backMenuBtn.setInteractive();
@@ -362,7 +367,7 @@ const util = {
         restartBtn.setInteractive();
         restartBtn.on('pointerdown', () => {
             util.resetScene(scene);
-            scene.scene.start('scene'+scene.level)
+            scene.scene.start('scene' + scene.level)
         })
     },
 
@@ -391,4 +396,20 @@ const util = {
         scene.promptItem = [];
         scene.clickNum = 0;
     },
+
+    endGame: (scene) => {
+        scene.timer.pause(); //暫停計時
+        let bg = scene.add.image(constants.EndLevelImg[0], constants.EndLevelImg[1], 'success' + scene.level).setScale(constants.EndLevelImg[2]).setDepth(constants.EndLevelImg[3]).setOrigin(0.5, 0.5)
+        let backMenuBtn = scene.add.image(constants.backMenuBtn[0], constants.backMenuBtn[1], 'backMenuBtn1').setScale(constants.backMenuBtn[2]).setDepth(constants.backMenuBtn[3]);
+        scene.mask = scene.add.graphics(0, 0);
+        scene.mask.fillStyle(0x000000, constants.Mask[4]);
+        scene.mask.fillRect(0, 0, constants.Mask[0], constants.Mask[1]);
+        scene.mask.depth = constants.Mask[3];
+
+        backMenuBtn.setInteractive();
+        backMenuBtn.on('pointerdown', () => {
+            util.resetScene(scene);
+            scene.scene.start('start')
+        });
+    }
 }
