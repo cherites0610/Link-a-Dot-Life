@@ -27,7 +27,6 @@ class scene1 extends Phaser.Scene {
     }
 
     create() {
-        console.log(this.gameIndex);
         util.createGame(this);
     }
 }
