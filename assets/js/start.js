@@ -13,7 +13,7 @@ class start extends Phaser.Scene {
 
         // 点击事件监听器，切换到GameScene
         this.input.on('pointerdown', () => {
-            this.scene.start('scene01');
+            this.scene.start('scene1');
         });
     }
 }

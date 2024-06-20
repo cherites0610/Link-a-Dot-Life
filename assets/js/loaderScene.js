@@ -13,15 +13,28 @@ class loaderScene extends Phaser.Scene {
         this.load.image('restartBtn', "/assets/img/public/restartBtn.png");
         this.load.image('backBtn', "/assets/img/public/backBtn.png");
 
-        const IUrl = "/assets/img/public/line/"
+        //讀取線
+        const LUrl = "/assets/img/public/line/"
         for (let i = 1; i < 5; i++) {
             for (let j = 1; j < 5; j++) {
                 const fileName = "line" + i + (String.fromCharCode(j + 96));
-                this.load.image(fileName, IUrl + fileName + ".png")
+                this.load.image(fileName, LUrl + fileName + ".png")
             }
         }
 
-        
+        //讀取圖案
+        for (let l = 1; l < 11; l++) {
+            
+            for (let i = 1; i < 5; i++) {
+                for (let j = 1; j < 3; j++) {
+                    const fileName = (String.fromCharCode(i + 96)) + j;
+                    const IUrl = "/assets/img/" + l + "/" + fileName + ".png"
+                    this.load.image(fileName +l,IUrl )
+                }
+            }
+        }
+
+
 
         // 创建进度条的背景和填充
         let progressBar = this.add.graphics();

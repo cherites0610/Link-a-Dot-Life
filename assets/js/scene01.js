@@ -1,8 +1,8 @@
-class scene01 extends Phaser.Scene {
+class scene1 extends Phaser.Scene {
 
 
     constructor() {
-        super({ key: 'scene01' })
+        super({ key: 'scene1' })
         this.level = 1;
         this.itemNum = constants.LevelPassNum[this.level - 1];
         this.gameIndex = JSON.parse(JSON.stringify(util.getGameIndex()));
@@ -21,13 +21,6 @@ class scene01 extends Phaser.Scene {
     preload() {
         //導入圖片
         const FUrl = "/assets/img/" + this.level + "/";
-        for (let i = 1; i < 5; i++) {
-            for (let j = 1; j < 3; j++) {
-                const fileName = (String.fromCharCode(i + 96)) + j;
-                this.load.image(fileName + this.level, FUrl + fileName + ".png")
-            }
-        }
-
         this.load.image('bg' + this.level, FUrl + "bg.png");
         this.load.image('fail' + this.level, FUrl + "fail.png");
         this.load.image('success' + this.level, FUrl + "success.png");
