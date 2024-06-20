@@ -87,7 +87,6 @@ const util = {
     },
 
     handleClickresetBtn: (scene) => {
-        console.log(scene.tempGameIndex);
         scene.gameIndex = JSON.stringify(scene.tempGameIndex);
         scene.LineGroup.forEach((item) => {
             item.clear(true, true)
@@ -179,7 +178,6 @@ const util = {
         const x = parseInt((pointer.x - (constants.Screen[0] - constants.Grid[0] / 2)) / constants.Grid[0])
         const y = parseInt((pointer.y - (constants.Screen[1] - constants.Grid[1] / 2)) / constants.Grid[1]);
         let lastClickIndex = scene.historyClickIndex[scene.historyClickIndex.length - 1];
-        console.log(scene.gameIndex[y][x])
 
         if (scene.selectItem) {
             //上次有點擊到物品
@@ -189,15 +187,15 @@ const util = {
 
                 if (scene.selectItem + 80 == scene.gameIndex[y][x]) {
                     //點擊到選中的物品
-                    console.log(1);
+
                     return;
                 } else if (scene.selectItem + 90 == scene.gameIndex[y][x]) {
                     //點擊到上一次點擊的地方
-                    console.log(2);
+
                     return;
                 } else if (scene.gameIndex[y][x] >= 80) {
                     //點擊到不能點的地方
-                    console.log(3);
+
                     return;
                 } else if (scene.gameIndex[y][x] != 0 && scene.gameIndex[y][x] < 90) {
                     //第二次點到物品
@@ -248,7 +246,7 @@ const util = {
             //上次沒有點擊到物品
 
             if (scene.gameIndex[y][x] > 80) {
-                console.log('4');
+
             } else if (scene.gameIndex[y][x] != 0) {
                 //第一次點擊物品
                 scene.LineGroup.push(scene.add.group());
@@ -291,7 +289,6 @@ const util = {
     },
 
     createGame: (scene) => {
-        console.log(scene.gameIndex);
         //背景
         scene.add.image(0, 0, 'bg' + scene.level).setOrigin(0, 0);
 

@@ -24,12 +24,15 @@ class loaderScene extends Phaser.Scene {
 
         //讀取圖案
         for (let l = 1; l < 11; l++) {
-            
+
             for (let i = 1; i < 5; i++) {
                 for (let j = 1; j < 3; j++) {
                     const fileName = (String.fromCharCode(i + 96)) + j;
                     const IUrl = "/assets/img/" + l + "/" + fileName + ".png"
-                    this.load.image(fileName +l,IUrl )
+                    this.load.image(fileName + l, IUrl)
+                    this.load.image('bg' + l, "/assets/img/" + l + "/" + "bg.png");
+                    this.load.image('fail' + l, "/assets/img/" + l + "/" + "fail.png");
+                    this.load.image('success' + l, "/assets/img/" + l + "/" + "success.png");
                 }
             }
         }

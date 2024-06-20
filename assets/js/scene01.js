@@ -19,11 +19,7 @@ class scene1 extends Phaser.Scene {
     }
 
     preload() {
-        //導入圖片
-        const FUrl = "/assets/img/" + this.level + "/";
-        this.load.image('bg' + this.level, FUrl + "bg.png");
-        this.load.image('fail' + this.level, FUrl + "fail.png");
-        this.load.image('success' + this.level, FUrl + "success.png");
+
     }
 
     create() {

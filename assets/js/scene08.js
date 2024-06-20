@@ -1,7 +1,7 @@
-class scene2 extends Phaser.Scene {
+class scene8 extends Phaser.Scene {
     constructor() {
-        super({ key: 'scene2' })
-        this.level = 2;
+        super({ key: 'scene8' })
+        this.level = 8;
         this.itemNum = constants.LevelPassNum[this.level - 1];
         this.gameIndex = JSON.parse(JSON.stringify(util.getGameIndex()));;
         this.tempGameIndex = JSON.stringify(this.gameIndex);
