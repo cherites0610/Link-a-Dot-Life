@@ -25,7 +25,7 @@ const util = {
         if (isVisible) {
             let promptText = "當前選中:" + promptIndex;
             promptItem[0].setText(promptText)
-            promptItem[1].setX(constants.Screen[0] + (constants.Grid[0] * (promptIndex[0] + 2)) - 117).setY(constants.Screen[1] + (constants.Grid[1] * (promptIndex[1] + 1)) + 108).setVisible(true);
+            promptItem[1].setX(constants.Screen[0] + (constants.Grid[0] * (promptIndex[0] + 2))-(constants.Grid[0]/2)-11).setY(constants.Screen[1] + (constants.Grid[1] * (promptIndex[1] + 2))-((constants.Grid[1]/2)+8)).setVisible(true)
         } else {
             promptItem[0].setText("當前選中:" + '無')
             promptItem[1].setVisible(false);
@@ -400,7 +400,7 @@ const util = {
     endGame: (scene) => {
         scene.timer.pause(); //暫停計時
         let bg = scene.add.image(constants.EndLevelImg[0], constants.EndLevelImg[1], 'success' + scene.level).setScale(constants.EndLevelImg[2]).setDepth(constants.EndLevelImg[3]).setOrigin(0.5, 0.5)
-        let backMenuBtn = scene.add.image(constants.backMenuBtn[0], constants.backMenuBtn[1], 'backMenuBtn1').setScale(constants.backMenuBtn[2]).setDepth(constants.backMenuBtn[3]);
+        let backMenuBtn = scene.add.image(constants.endGameBtn[0], constants.endGameBtn[1], 'backMenuBtn1').setScale(constants.endGameBtn[2]).setDepth(constants.endGameBtn[3]);
         scene.mask = scene.add.graphics(0, 0);
         scene.mask.fillStyle(0x000000, constants.Mask[4]);
         scene.mask.fillRect(0, 0, constants.Mask[0], constants.Mask[1]);
